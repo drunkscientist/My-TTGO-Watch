@@ -43,7 +43,7 @@ void note_tile_setup( void ) {
     lv_style_set_text_font( &notestyle, LV_STATE_DEFAULT, &Ubuntu_72px);
 
     notelabel = lv_label_create( note_cont, NULL);
-    lv_label_set_text( notelabel, "note");
+    lv_label_set_text( notelabel, "I=V/R");
     lv_obj_reset_style_list( notelabel, LV_OBJ_PART_MAIN );
     lv_obj_add_style( notelabel, LV_OBJ_PART_MAIN, &notestyle );
     lv_obj_align( notelabel, NULL, LV_ALIGN_CENTER, 0, 0);

@@ -101,17 +101,19 @@ void setup()
      */
     weather_app_setup();
     stopwatch_app_setup();
+    esp3d_app_setup();
     alarm_clock_setup();
     //crypto_ticker_setup();
-    //example_app_setup();
+    example_app_setup();
     //osmand_app_setup();
     IRController_setup();
     //fxrates_app_setup();
     //powermeter_app_setup();
-	FindPhone_setup();
-    esp3d_app_setup();
+	//FindPhone_setup();
+
   	/*
-     *
+     *    esp3d_app_setup();
+
      */
     if ( wifictl_get_autoon() && ( pmu_is_charging() || pmu_is_vbus_plug() || ( pmu_get_battery_voltage() > 3400) ) )
         wifictl_on();

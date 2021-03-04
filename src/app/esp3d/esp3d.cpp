@@ -100,13 +100,13 @@ void build_main_esp_page()
 void build_esp_settings()
 {
     // Create full options list and attach items to variables
-    espconfig.addString("espServer", 32).assign(&esp3dServer);
-    espconfig.addString("esppair1", 12, "EUR_USD").assign(&espData1);
-    espconfig.addString("esppair2", 12).assign(&espData2);
+    espconfig.addString("M117 hi maybe", 32).assign(&esp3dServer);
+    espconfig.addString("M119", 12, "EUR_USD").assign(&espData1);
+    espconfig.addString("M105", 12).assign(&espData2);
     espconfig.addBoolean("autosync", false);
     espconfig.addBoolean("widget", false);
 
-    // Switch desktop widget state based on the cuurent settings when changed
+    // Switch desktop widget state based on the current settings when changed
     espconfig.onLoadSaveHandler([](JsonConfig& cfg) {
         bool widgetEnabled = cfg.getBoolean("widget"); // Is app widget enabled?
         if (widgetEnabled)
@@ -120,7 +120,7 @@ void build_esp_settings()
 
 bool fetch_esp3d_data(String esp3dServer, String esppair1, String esppair2) {
     char url[256]=""; float p1=0, p2=0;
-    snprintf(url, sizeof(url), "http://192.168.1.215", esp3dServer.c_str(), esppair1.c_str(), esppair2.c_str());
+    snprintf(url, sizeof(url), "192.168.1.215", esp3dServer.c_str(), esppair1.c_str(), esppair2.c_str());
     if (esppair2.length() == 0) // If single currency used - remove ',' char
         url[strlen(url)-1]='\0';
 
