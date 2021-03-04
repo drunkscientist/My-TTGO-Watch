@@ -100,7 +100,7 @@ void build_main_esp_page()
 void build_esp_settings()
 {
     // Create full options list and attach items to variables
-    espconfig.addString("M117 hi maybe", 32).assign(&esp3dServer);
+    espconfig.addString("8888", 32).assign(&esp3dServer);
     espconfig.addString("M119", 12, "EUR_USD").assign(&espData1);
     espconfig.addString("M105", 12).assign(&espData2);
     espconfig.addBoolean("autosync", false);
