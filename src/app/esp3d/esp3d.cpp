@@ -5,6 +5,8 @@
 #include "esp3d.h"
 #include "gui/mainbar/mainbar.h"
 #include "hardware/wifictl.h"
+//#include <WiFi.h>
+
 
 
 
@@ -20,6 +22,7 @@ JsonConfig espconfig("esp3d.json");
 String esp3dServer, espData1, espData2;
 String ESPmainPairValue, ESPsecondPairValue, espupdatedAt;
 Label esp3dCurrentStatus, esp3dStatus, lblEspUpdatedAt;
+int val = 0;
 
 Style Ebig;
 
@@ -100,7 +103,7 @@ void build_main_esp_page()
 void build_esp_settings()
 {
     // Create full options list and attach items to variables
-    espconfig.addString("M117 hi maybe", 32).assign(&esp3dServer);
+    espconfig.addString("8888", 32).assign(&esp3dServer);
     espconfig.addString("M119", 12, "EUR_USD").assign(&espData1);
     espconfig.addString("M105", 12).assign(&espData2);
     espconfig.addBoolean("autosync", false);
@@ -119,10 +122,49 @@ void build_esp_settings()
 }
 
 bool fetch_esp3d_data(String esp3dServer, String esppair1, String esppair2) {
+  /* 
+    const uint16_t port = 8888;
+    const char * host = "192.168.1.215"; // ip or dns
+
+    Serial.print("Connecting to ");
+    Serial.println(host);
+
+    // Use WiFiClient class to create TCP connections
+    WiFiClient client;
+    client.connect( host, port);
+
+    if (!client.connect(host, port)) {
+        Serial.println("Connection failed.");
+        return false;
+    }
+
+    client.print("M105");
+    int maxloops = 0;
+
+    //wait for the server's reply to become available
+    while (!client.available() && maxloops < 1000)
+    {
+        maxloops++;
+        delay(1); //delay 1 msec
+    }
+    if (client.available() > 0)
+    {
+        //read back one line from the server
+        espData1 = client.readStringUntil('\r');
+        
+    }
+    else{
+    Serial.println("client.available() timed out ");
+    return false;
+  }
+
+    Serial.println("Closing connection.");
+    client.stop();
+
+ 
+  
     char url[256]=""; float p1=0, p2=0;
     snprintf(url, sizeof(url), "192.168.1.215", esp3dServer.c_str(), esppair1.c_str(), esppair2.c_str());
-    if (esppair2.length() == 0) // If single currency used - remove ',' char
-        url[strlen(url)-1]='\0';
 
     JsonRequest request(320);
     if (!request.process(url)) {
@@ -137,8 +179,10 @@ bool fetch_esp3d_data(String esp3dServer, String esppair1, String esppair2) {
         p2 = request[espData2].as<float>();
         ESPsecondPairValue = String(p2, 2);
     }
+    
     espupdatedAt = request.formatCompletedAt("Upd: %d.%m %H:%M.%S");
     //log_i("fx rates: %d = %f, %f", doc.size(), p1, p2);
-
+*/
+  
     return true;
 }

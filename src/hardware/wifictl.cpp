@@ -166,8 +166,8 @@ void wifictl_setup( void ) {
         else {
           wifictl_set_event( WIFICTL_SCAN );
           wifictl_send_event_cb( WIFICTL_ON, (void *)"scan ..." );
-          WiFi.begin(ssid, password);
-          //WiFi.scanNetworks( true );
+          //WiFi.begin(ssid, password);
+          WiFi.scanNetworks( true );
         }
     }, WiFiEvent_t::SYSTEM_EVENT_WIFI_READY );
 

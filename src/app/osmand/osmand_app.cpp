@@ -52,7 +52,7 @@ void osmand_app_setup( void ) {
 
 //    osmand_widget = widget_register( "OsmAnd", &osmand_64px, enter_osmand_app_event_cb );
 
-    // init main tile, see example_app_main.cpp and example_app_setup.cpp
+    // init main tile, see example_app_main.cpp and esp3d_app_setup.cpp
     osmand_app_main_setup( osmand_app_main_tile_num );
 }
 

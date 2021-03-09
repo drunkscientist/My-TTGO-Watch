@@ -45,13 +45,15 @@
 #include "app/stopwatch/stopwatch_app.h"
 #include "app/alarm_clock/alarm_clock.h"
 #include "app/crypto_ticker/crypto_ticker.h"
-#include "app/example_app/example_app.h"
+#include "app/esp_app/esp_app.h"
 #include "app/osmand/osmand_app.h"
 #include "app/IRController/IRController.h"
 #include "app/fx_rates/fx_rates.h"
 #include "app/powermeter/powermeter_app.h"
 #include "app/FindPhone/FindPhone.h"
 #include "app/esp3d/esp3d.h"
+#include "app/soundboard_app/soundboard_app.h"
+//#include "app/skeleton_app/skeleton_app.h"
 
 
 
@@ -101,15 +103,16 @@ void setup()
      */
     weather_app_setup();
     stopwatch_app_setup();
-    esp3d_app_setup();
+    //esp3d_app_setup();
     alarm_clock_setup();
     //crypto_ticker_setup();
-    example_app_setup();
+    esp_app_setup();
     //osmand_app_setup();
     IRController_setup();
     //fxrates_app_setup();
     //powermeter_app_setup();
 	//FindPhone_setup();
+    //soundboard_app_setup();
 
   	/*
      *    esp3d_app_setup();
