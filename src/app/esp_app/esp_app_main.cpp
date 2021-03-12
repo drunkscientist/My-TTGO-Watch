@@ -33,6 +33,11 @@
 #include "quickglui/quickglui.h"
 
 
+const uint16_t port = 8888;
+const char * host = "192.168.1.215"; // ip or dns
+
+
+
 //SynchronizedApplication esp3dApp;
 JsonConfig esp3d_config("esp3d.json");
 
@@ -61,13 +66,10 @@ void first_button_press_cb( lv_obj_t * obj, lv_event_t event );
 void second_button_press_cb( lv_obj_t * obj, lv_event_t event );
 
 
-const uint16_t port = 8888;
-const char * host = "192.168.1.215"; // ip or dns
-
 WiFiClient client;
 //Label ;
 String command, returnData;
-
+String arrer = "connection error";
 
 void esp_app_main_setup( uint32_t tile_num ) {
 
@@ -112,17 +114,16 @@ void esp_app_main_setup( uint32_t tile_num ) {
 
 
 
-    
-
-    //lv_obj_t * lblReturnData = lv_label_create(esp_app_main_tile, NULL);
-
-    //lv_label_set_text_fmt
-
+  
 /*
 */
 
-
-    // uncomment the following block of code to remove the "myapp" label in background
+    returnDataObj = lv_label_create(esp_app_main_tile, NULL);
+    lv_label_set_long_mode(returnDataObj, LV_LABEL_LONG_SROLL_CIRC);     //Circular scroll
+    lv_obj_set_width(returnDataObj, 150);
+    lv_label_set_text(returnDataObj, "start");
+    lv_obj_align(returnDataObj, esp_app_main_tile, LV_ALIGN_CENTER, 0, 30);
+   
     
     lv_style_set_text_opa( &esp_app_main_style, LV_OBJ_PART_MAIN, LV_OPA_70);
     lv_style_set_text_font( &esp_app_main_style, LV_STATE_DEFAULT, &Ubuntu_32px);
@@ -168,7 +169,7 @@ void sendLcdCmd(){
     
 // client.connect( host, port);
 
-    client.print("M117 doit ASSHOLE\n");
+    client.print("M117 hello world\n");
 
     //client.println("");
 
@@ -182,6 +183,7 @@ void sendGcode(){
 
     if (!client.connect(host, port)) {
         Serial.println("Connection failed.");
+        //lv_label_set_text(returnDataObj, "connection failed");
         return;
     }
     
@@ -200,22 +202,17 @@ void sendGcode(){
         //read back one line from the server
         returnData = client.readStringUntil('\r');
         Serial.println(returnData);        
-        //lv_label_set_text(lblReturnData, returnData);
-
         strncpy(testChar, returnData.c_str(), sizeof(returnData));
+        //lv_label_set_text(lblReturnData, testChar);
+
         //snprintf(testChar, returnData.length, "%s", returnData.c_str());
-        //lv_label_set_text(returnDataObj, testChar);
-        //lv_event_send_refresh(returnDataObj);
     
     }
     else
     {
         Serial.println("client.available() timed out ");
+        //lv_label_set_text(lblReturnData, "client timed out" );
         
-        
-        //testChar = "client timed out";
-        //lv_label_set_text(returnDataObj, "client timed out");
-        //lv_event_send_refresh(returnDataObj);
     }
 
     Serial.println("Closing connection.");
@@ -235,21 +232,18 @@ void first_button_press_cb( lv_obj_t * obj, lv_event_t event ){
 void second_button_press_cb( lv_obj_t * obj, lv_event_t event ){
     switch ( event ){
                 case( LV_EVENT_CLICKED ):
-                    
+                    Serial.println("second button clicked");
+                    //lv_label_set_text(lblReturnData, "second button clicked");
                 break;
     }
 }
 
 void esp_app_task( lv_task_t * task ) {
     // put your code here
-
+    lv_label_set_text(returnDataObj, testChar);
     //lv_event_send_refresh_recursive(esp_app_main_tile);
 
-    lv_obj_t * returnDataObj = lv_label_create(esp_app_main_tile, NULL);
-    lv_label_set_long_mode(returnDataObj, LV_LABEL_LONG_SROLL_CIRC);     //Circular scroll
-    lv_obj_set_width(returnDataObj, 150);
-    lv_label_set_text(returnDataObj, testChar);
-    lv_obj_align(returnDataObj, esp_app_main_tile, LV_ALIGN_CENTER, 0, 30);
+   
    
     
 }
