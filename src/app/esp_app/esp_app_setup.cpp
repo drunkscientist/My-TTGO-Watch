@@ -38,6 +38,10 @@ LV_IMG_DECLARE(exit_32px);
 static void exit_esp_app_setup_event_cb( lv_obj_t * obj, lv_event_t event );
 static void esp_app_foobar_switch_event_cb( lv_obj_t * obj, lv_event_t event );
 
+void buildConfig(){
+
+}
+
 void esp_app_setup_setup( uint32_t tile_num ) {
 
     esp_app_setup_tile = mainbar_get_tile_obj( tile_num );
@@ -64,7 +68,7 @@ void esp_app_setup_setup( uint32_t tile_num ) {
     
     lv_obj_t *exit_label = lv_label_create( exit_cont, NULL);
     lv_obj_add_style( exit_label, LV_OBJ_PART_MAIN, &esp_app_setup_style  );
-    lv_label_set_text( exit_label, "my app setup");
+    lv_label_set_text( exit_label, "esp3d setup");
     lv_obj_align( exit_label, exit_btn, LV_ALIGN_OUT_RIGHT_MID, 5, 0 );
 
     lv_obj_t *esp_app_foobar_switch_cont = lv_obj_create( esp_app_setup_tile, NULL );
@@ -83,6 +87,8 @@ void esp_app_setup_setup( uint32_t tile_num ) {
     lv_obj_add_style( esp_app_foobar_switch_label, LV_OBJ_PART_MAIN, &esp_app_setup_style  );
     lv_label_set_text( esp_app_foobar_switch_label, "foo bar");
     lv_obj_align( esp_app_foobar_switch_label, esp_app_foobar_switch_cont, LV_ALIGN_IN_LEFT_MID, 5, 0 );
+
+    buildConfig();
 }
 
 static void esp_app_foobar_switch_event_cb( lv_obj_t * obj, lv_event_t event ) {
