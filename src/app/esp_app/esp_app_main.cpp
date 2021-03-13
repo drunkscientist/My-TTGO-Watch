@@ -233,6 +233,7 @@ void second_button_press_cb( lv_obj_t * obj, lv_event_t event ){
     switch ( event ){
                 case( LV_EVENT_CLICKED ):
                     Serial.println("second button clicked");
+                    sendLcdCmd();
                     //lv_label_set_text(lblReturnData, "second button clicked");
                 break;
     }
