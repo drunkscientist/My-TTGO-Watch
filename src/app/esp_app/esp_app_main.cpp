@@ -3,7 +3,7 @@
  *   Copyright  2020  Dirk Brosswick
  *   Email: dirk.brosswick@googlemail.com
  ****************************************************************************/
- 
+
 /*
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,10 +35,10 @@
 
 const uint16_t port = 8888;
 const char * host = "192.168.1.215"; // ip or dns
+//String host;
 
 
-
-//SynchronizedApplication esp3dApp;
+SynchronizedApplication espApp;
 JsonConfig esp3d_config("esp3d.json");
 
 
@@ -69,7 +69,14 @@ void second_button_press_cb( lv_obj_t * obj, lv_event_t event );
 WiFiClient client;
 //Label ;
 String command, returnData;
-String arrer = "connection error";
+
+void build_more_esp_settings(){
+    esp3d_config.addString("M105\n", 5 ).assign(&command);
+    //esp3d_config.addString("192.168.1.215", 32).assign(&host);
+    espApp.useConfig(esp3d_config, true);
+}
+
+
 
 void esp_app_main_setup( uint32_t tile_num ) {
 
@@ -112,9 +119,8 @@ void esp_app_main_setup( uint32_t tile_num ) {
     lv_obj_align(second_button, esp_app_main_tile, LV_ALIGN_IN_TOP_RIGHT, 0, 0 );
     lv_obj_set_event_cb( second_button, second_button_press_cb );
 
-
-
-  
+    // build_more_esp_settings();
+    
 /*
 */
 
@@ -123,8 +129,8 @@ void esp_app_main_setup( uint32_t tile_num ) {
     lv_obj_set_width(returnDataObj, 150);
     lv_label_set_text(returnDataObj, "start");
     lv_obj_align(returnDataObj, esp_app_main_tile, LV_ALIGN_CENTER, 0, 30);
-   
-    
+
+
     lv_style_set_text_opa( &esp_app_main_style, LV_OBJ_PART_MAIN, LV_OPA_70);
     lv_style_set_text_font( &esp_app_main_style, LV_STATE_DEFAULT, &Ubuntu_32px);
     lv_obj_t *app_label = lv_label_create( esp_app_main_tile, NULL);
@@ -137,7 +143,7 @@ void esp_app_main_setup( uint32_t tile_num ) {
     */
 
     //lblReturnData.text(returnData).alignInParentCenter();
-    // create an task that runs every secound
+    // create an task that runs every so often
     _esp_app_task = lv_task_create( esp_app_task, 1000, LV_TASK_PRIO_MID, NULL );
 
 
@@ -166,7 +172,7 @@ void sendLcdCmd(){
         Serial.println("Connection failed.");
         return;
     }
-    
+
 // client.connect( host, port);
 
     client.print("M117 hello world\n");
@@ -183,11 +189,11 @@ void sendGcode(){
 
     if (!client.connect(host, port)) {
         Serial.println("Connection failed.");
-        //lv_label_set_text(returnDataObj, "connection failed");
+        lv_label_set_text(returnDataObj, "connection failed");
         return;
     }
-    
-    client.print("M105\n");
+
+    client.print(command);
 
     int maxloops = 0;
 
@@ -198,21 +204,21 @@ void sendGcode(){
     }
     if (client.available() > 0){
 
-        
-        //read back one line from the server
+
+        //read back from the server
         returnData = client.readStringUntil('\r');
-        Serial.println(returnData);        
+        Serial.println(returnData);
         strncpy(testChar, returnData.c_str(), sizeof(returnData));
-        //lv_label_set_text(lblReturnData, testChar);
+        lv_label_set_text(returnDataObj, testChar);
 
         //snprintf(testChar, returnData.length, "%s", returnData.c_str());
-    
+
     }
     else
     {
         Serial.println("client.available() timed out ");
-        //lv_label_set_text(lblReturnData, "client timed out" );
-        
+        lv_label_set_text(lblReturnData, "client timed out" );
+
     }
 
     Serial.println("Closing connection.");
@@ -233,17 +239,18 @@ void second_button_press_cb( lv_obj_t * obj, lv_event_t event ){
     switch ( event ){
                 case( LV_EVENT_CLICKED ):
                     Serial.println("second button clicked");
-                    //lv_label_set_text(lblReturnData, "second button clicked");
+                    lv_label_set_text(returnDataObj, "second button clicked");
                 break;
     }
 }
 
 void esp_app_task( lv_task_t * task ) {
     // put your code here
-    lv_label_set_text(returnDataObj, testChar);
+    //lv_label_set_text(returnDataObj, testChar);
     //lv_event_send_refresh_recursive(esp_app_main_tile);
 
-   
-   
-    
+
+
+
+
 }
