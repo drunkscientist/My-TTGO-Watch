@@ -35,7 +35,7 @@
 
 const uint16_t port = 8888;
 const char * host = "192.168.1.215"; // ip or dns
-//String host;
+
 
 
 SynchronizedApplication espApp;
@@ -47,8 +47,8 @@ lv_style_t esp_app_main_style;
 
 lv_task_t * _esp_app_task;
 
+
 lv_obj_t *returnDataObj;
-lv_obj_t *lblReturnData;
 //#define MAX_STRING_SIZE len(returnData)
 char testChar[50];
 
@@ -68,14 +68,14 @@ void second_button_press_cb( lv_obj_t * obj, lv_event_t event );
 
 WiFiClient client;
 //Label ;
-String command, returnData;
+String command = "M105\n"; 
+String returnData;
 
 void build_more_esp_settings(){
     esp3d_config.addString("M105\n", 5 ).assign(&command);
     //esp3d_config.addString("192.168.1.215", 32).assign(&host);
-    espApp.useConfig(esp3d_config, true);
+    //espApp.useConfig(esp3d_config, false);
 }
-
 
 
 void esp_app_main_setup( uint32_t tile_num ) {
@@ -119,7 +119,7 @@ void esp_app_main_setup( uint32_t tile_num ) {
     lv_obj_align(second_button, esp_app_main_tile, LV_ALIGN_IN_TOP_RIGHT, 0, 0 );
     lv_obj_set_event_cb( second_button, second_button_press_cb );
 
-    // build_more_esp_settings();
+    build_more_esp_settings();
     
 /*
 */
@@ -135,14 +135,14 @@ void esp_app_main_setup( uint32_t tile_num ) {
     lv_style_set_text_font( &esp_app_main_style, LV_STATE_DEFAULT, &Ubuntu_32px);
     lv_obj_t *app_label = lv_label_create( esp_app_main_tile, NULL);
     //lv_label_set_text( app_label, "");
-    lv_label_set_text( app_label,"babysteps");
+    lv_label_set_text( app_label,"will crash without wifi");
     lv_obj_reset_style_list( app_label, LV_OBJ_PART_MAIN );
     lv_obj_add_style( app_label, LV_OBJ_PART_MAIN, &esp_app_main_style );
     lv_obj_align( app_label, esp_app_main_tile, LV_ALIGN_CENTER, 0, 0);
 /*
     */
 
-    //lblReturnData.text(returnData).alignInParentCenter();
+    //returnDataObj.text(returnData).alignInParentCenter();
     // create an task that runs every so often
     _esp_app_task = lv_task_create( esp_app_task, 1000, LV_TASK_PRIO_MID, NULL );
 
@@ -167,13 +167,11 @@ void sendLcdCmd(){
     Serial.print("Connecting to ");
     Serial.println(host);
 
-
     if (!client.connect(host, port)) {
         Serial.println("Connection failed.");
+        lv_label_set_text(returnDataObj, "connection failed");
         return;
     }
-
-// client.connect( host, port);
 
     client.print("M117 hello world\n");
 
@@ -193,7 +191,7 @@ void sendGcode(){
         return;
     }
 
-    client.print(command);
+    client.println(command);
 
     int maxloops = 0;
 
@@ -206,7 +204,8 @@ void sendGcode(){
 
 
         //read back from the server
-        returnData = client.readStringUntil('\r');
+        returnData = client.readStringUntil('\0');
+        //returnData = client.readString();
         Serial.println(returnData);
         strncpy(testChar, returnData.c_str(), sizeof(returnData));
         lv_label_set_text(returnDataObj, testChar);
@@ -217,7 +216,7 @@ void sendGcode(){
     else
     {
         Serial.println("client.available() timed out ");
-        lv_label_set_text(lblReturnData, "client timed out" );
+        lv_label_set_text(returnDataObj, "client timed out" );
 
     }
 
@@ -240,6 +239,7 @@ void second_button_press_cb( lv_obj_t * obj, lv_event_t event ){
                 case( LV_EVENT_CLICKED ):
                     Serial.println("second button clicked");
                     lv_label_set_text(returnDataObj, "second button clicked");
+                    sendLcdCmd();
                 break;
     }
 }
