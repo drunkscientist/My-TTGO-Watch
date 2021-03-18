@@ -3,12 +3,12 @@
 
     #include <TTGO.h>
 
-    void esp3d_app_setup();
+    void example_app_setup();
 
     bool esp3d_wifictl_event_cb(EventBits_t event, void *arg);
-    bool fetch_esp3d_data(String esp3dServer, String pair1, String pair2);
+    bool fetch_example_data(String esp3dServer, String espDataPort, String gCodeCmd);
 
-    void build_main_esp_page();//might neeed to edit this and the next too
-    void build_esp_settings();
+    void build_main_example_page();//might neeed to edit this and the next too
+    void build_example_settings();
 
 #endif // _esp3d_APP_H

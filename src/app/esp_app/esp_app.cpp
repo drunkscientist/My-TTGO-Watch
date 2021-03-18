@@ -24,7 +24,6 @@
 
 #include "esp_app.h"
 #include "esp_app_main.h"
-#include "esp_app_setup.h"
 
 #include "gui/mainbar/mainbar.h"
 #include "gui/statusbar.h"
@@ -77,7 +76,7 @@ void esp_app_setup( void ) {
 
     // init main and setup tile, see example_app_main.cpp and esp3d_app_setup.cpp
     esp_app_main_setup( esp_app_main_tile_num );
-    esp_app_setup_setup( esp_app_setup_tile_num );
+   
 }
 
 /*

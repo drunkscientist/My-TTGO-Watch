@@ -49,6 +49,8 @@ lv_task_t * _esp_app_task;
 
 
 lv_obj_t *returnDataObj;
+lv_obj_t *heatGauge;
+
 //#define MAX_STRING_SIZE len(returnData)
 char testChar[50];
 
@@ -64,6 +66,8 @@ static void enter_esp_app_setup_event_cb( lv_obj_t * obj, lv_event_t event );
 void esp_app_task( lv_task_t * task );
 void first_button_press_cb( lv_obj_t * obj, lv_event_t event );
 void second_button_press_cb( lv_obj_t * obj, lv_event_t event );
+void gauge_press_cb( lv_obj_t * obj, lv_event_t event );
+
 
 
 WiFiClient client;
@@ -77,12 +81,7 @@ void build_more_esp_settings(){
     //espApp.useConfig(esp3d_config, false);
 }
 
-
-void esp_app_main_setup( uint32_t tile_num ) {
-
-    esp_app_main_tile = mainbar_get_tile_obj( tile_num );
-    lv_style_copy( &esp_app_main_style, mainbar_get_style() );
-
+void build_buttons(){
     lv_obj_t * exit_btn = lv_imgbtn_create( esp_app_main_tile, NULL);
     lv_imgbtn_set_src(exit_btn, LV_BTN_STATE_RELEASED, &exit_32px);
     lv_imgbtn_set_src(exit_btn, LV_BTN_STATE_PRESSED, &exit_32px);
@@ -92,6 +91,9 @@ void esp_app_main_setup( uint32_t tile_num ) {
     lv_obj_align(exit_btn, esp_app_main_tile, LV_ALIGN_IN_BOTTOM_LEFT, 10, -10 );
     lv_obj_set_event_cb( exit_btn, exit_esp_app_main_event_cb );
 
+
+/*//setup button
+
     lv_obj_t * setup_btn = lv_imgbtn_create( esp_app_main_tile, NULL);
     lv_imgbtn_set_src(setup_btn, LV_BTN_STATE_RELEASED, &setup_32px);
     lv_imgbtn_set_src(setup_btn, LV_BTN_STATE_PRESSED, &setup_32px);
@@ -100,6 +102,9 @@ void esp_app_main_setup( uint32_t tile_num ) {
     lv_obj_add_style(setup_btn, LV_IMGBTN_PART_MAIN, &esp_app_main_style );
     lv_obj_align(setup_btn, esp_app_main_tile, LV_ALIGN_IN_BOTTOM_RIGHT, -10, -10 );
     lv_obj_set_event_cb( setup_btn, enter_esp_app_setup_event_cb );
+
+*/
+
 
     lv_obj_t * first_button = lv_imgbtn_create( esp_app_main_tile, NULL);
     lv_imgbtn_set_src(first_button, LV_BTN_STATE_RELEASED, &play_32px);
@@ -118,8 +123,49 @@ void esp_app_main_setup( uint32_t tile_num ) {
     lv_obj_add_style(second_button, LV_IMGBTN_PART_MAIN, &esp_app_main_style );
     lv_obj_align(second_button, esp_app_main_tile, LV_ALIGN_IN_TOP_RIGHT, 0, 0 );
     lv_obj_set_event_cb( second_button, second_button_press_cb );
+}
 
-    build_more_esp_settings();
+void esp_app_main_setup( uint32_t tile_num ) {
+
+    esp_app_main_tile = mainbar_get_tile_obj( tile_num );
+    lv_style_copy( &esp_app_main_style, mainbar_get_style() );
+
+    static lv_style_t gaugeStyle;
+    lv_style_init(&gaugeStyle);
+
+    static lv_color_t needle_colors[2];
+    needle_colors[0] = LV_COLOR_BLUE;
+    needle_colors[1] = LV_COLOR_ORANGE;
+    heatGauge = lv_gauge_create(esp_app_main_tile, NULL);
+    lv_gauge_set_needle_count(heatGauge, 2, needle_colors);
+    lv_obj_set_size(heatGauge, 200, 200);
+    lv_obj_align(heatGauge, esp_app_main_tile, LV_ALIGN_CENTER, 120, 20);
+    lv_gauge_set_range(heatGauge, 0, 260);
+    lv_gauge_set_critical_value(heatGauge, 240);
+    
+   
+    lv_gauge_set_scale(heatGauge, 180, 0, 4);
+    lv_gauge_set_angle_offset(heatGauge, 270);
+    lv_obj_set_style_local_scale_end_color(heatGauge, LV_GAUGE_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_RED);
+    lv_obj_set_style_local_scale_end_color(heatGauge, LV_GAUGE_PART_MAJOR, LV_STATE_DEFAULT, LV_COLOR_RED);
+  
+   // lv_style_set_scale_end_color(heatGauge, LV_STATE_DEFAULT , LV_COLOR_RED);
+
+    lv_style_set_bg_opa(&gaugeStyle, LV_STATE_DEFAULT, LV_OPA_50);
+    lv_obj_add_style(heatGauge, LV_GAUGE_PART_MAIN, &gaugeStyle);
+
+    lv_gauge_set_value(heatGauge, 0, 0);
+    lv_gauge_set_value(heatGauge, 1, 0);
+    lv_obj_set_event_cb( heatGauge, gauge_press_cb );
+    
+    build_buttons(); //for collapsablility
+
+    lv_obj_move_background(heatGauge);
+    //lv_gauge_set_needle_img(heatGauge, &img_hand, 4, 4);
+
+
+
+    //build_more_esp_settings(); //still have some redundancy to reduce
     
 /*
 */
@@ -135,16 +181,16 @@ void esp_app_main_setup( uint32_t tile_num ) {
     lv_style_set_text_font( &esp_app_main_style, LV_STATE_DEFAULT, &Ubuntu_32px);
     lv_obj_t *app_label = lv_label_create( esp_app_main_tile, NULL);
     //lv_label_set_text( app_label, "");
-    lv_label_set_text( app_label,"will crash without wifi");
+    lv_label_set_text( app_label,"esp3d hub");
     lv_obj_reset_style_list( app_label, LV_OBJ_PART_MAIN );
     lv_obj_add_style( app_label, LV_OBJ_PART_MAIN, &esp_app_main_style );
-    lv_obj_align( app_label, esp_app_main_tile, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_align( app_label, esp_app_main_tile, LV_ALIGN_IN_TOP_MID, 0, 0);
 /*
     */
 
     //returnDataObj.text(returnData).alignInParentCenter();
-    // create an task that runs every so often
-    _esp_app_task = lv_task_create( esp_app_task, 1000, LV_TASK_PRIO_MID, NULL );
+    // create an task that runs every so often, REGARDLESS WHAT WATCH SCREEN IS ACTIVE
+    //_esp_app_task = lv_task_create( esp_app_task, 3000, LV_TASK_PRIO_MID, NULL );
 
 
 }
@@ -163,6 +209,60 @@ static void exit_esp_app_main_event_cb( lv_obj_t * obj, lv_event_t event ) {
                                         break;
     }
 }
+
+
+void updateGauge(){
+     Serial.print("Connecting to ");
+    Serial.println(host);
+    
+    if (!client.connect(host, port)) {
+        Serial.println("Connection failed.");
+        lv_label_set_text(returnDataObj, "connection failed");
+        return;
+    }
+
+    client.println("M105\n");
+
+    int maxloops = 0;
+
+    while (!client.available() && maxloops < 1000)
+    {
+        maxloops++;
+        delay(1); //delay 1 msec
+    }
+    if (client.available() > 0){
+
+
+        //read back from the server
+        returnData = client.readStringUntil('\r');
+        //returnData = client.readString();
+        Serial.println(returnData);
+        String extrTempStr = returnData.substring(5 , 7);
+        String bedTempStr = returnData.substring(19, 21);
+
+        Serial.println(extrTempStr);
+        Serial.println(bedTempStr);
+
+        
+        int extrTemp = extrTempStr.toInt();
+        int bedTemp = bedTempStr.toInt();
+
+
+        lv_gauge_set_value(heatGauge, 0, extrTemp);
+        lv_gauge_set_value(heatGauge, 1, bedTemp);
+    }
+    else
+    {
+        Serial.println("client.available() timed out ");
+        lv_label_set_text(returnDataObj, "client timed out" );
+
+    }
+
+    Serial.println("Closing connection.");
+    client.stop();
+
+}
+
 void sendLcdCmd(){
     Serial.print("Connecting to ");
     Serial.println(host);
@@ -204,7 +304,7 @@ void sendGcode(){
 
 
         //read back from the server
-        returnData = client.readStringUntil('\0');
+        returnData = client.readStringUntil('\r');
         //returnData = client.readString();
         Serial.println(returnData);
         strncpy(testChar, returnData.c_str(), sizeof(returnData));
@@ -244,13 +344,24 @@ void second_button_press_cb( lv_obj_t * obj, lv_event_t event ){
     }
 }
 
+void gauge_press_cb( lv_obj_t * obj, lv_event_t event ){
+    switch ( event ){
+                case( LV_EVENT_CLICKED ):
+                    Serial.println("gauge clicked, updating temp gauge");
+                    lv_label_set_text(returnDataObj, "gauge clicked");
+                    updateGauge();
+                break;
+    }
+}
+
+
+
 void esp_app_task( lv_task_t * task ) {
     // put your code here
-    //lv_label_set_text(returnDataObj, testChar);
-    //lv_event_send_refresh_recursive(esp_app_main_tile);
+   }
+
+   
 
 
 
 
-
-}
