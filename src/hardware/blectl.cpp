@@ -33,6 +33,8 @@
 #include <BLE2902.h>
 
 #include "blectl.h"
+#include "blestepctl.h"
+#include "blebatctl.h"
 #include "pmu.h"
 #include "powermgm.h"
 #include "callback.h"
@@ -64,9 +66,6 @@ BLEServer *pServer = NULL;
 BLECharacteristic *pTxCharacteristic;
 BLECharacteristic *pRxCharacteristic;
 uint8_t txValue = 0;
-
-BLECharacteristic *pBatteryLevelCharacteristic;
-BLECharacteristic *pBatteryPowerStateCharacteristic;
 
 static CharBuffer gadgetbridge_msg;
 
@@ -259,20 +258,9 @@ void blectl_setup( void ) {
     // Start advertising battery service
     pServer->getAdvertising()->addServiceUUID( pDeviceInformationService->getUUID() );
 
-    // Create battery service
-    BLEService *pBatteryService = pServer->createService(BATTERY_SERVICE_UUID);
-    // Create a BLE battery service, batttery level Characteristic - 
-    pBatteryLevelCharacteristic = pBatteryService->createCharacteristic( BATTERY_LEVEL_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY );
-    pBatteryLevelCharacteristic->setAccessPermissions(ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED);
-    pBatteryLevelCharacteristic->addDescriptor( new BLEDescriptor(BATTERY_LEVEL_DESCRIPTOR_UUID) );
-    pBatteryLevelCharacteristic->addDescriptor( new BLE2902() );
-    pBatteryPowerStateCharacteristic = pBatteryService->createCharacteristic( BATTERY_POWER_STATE_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY );
-    pBatteryPowerStateCharacteristic->setAccessPermissions(ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED);
-    pBatteryPowerStateCharacteristic->addDescriptor( new BLE2902() );
-    // Start battery service
-    pBatteryService->start();
-    // Start advertising battery service
-    pServer->getAdvertising()->addServiceUUID( pBatteryService->getUUID() );
+    blebatctl_setup(pServer);
+
+    blestepctl_setup();
 
     // Slow advertising interval for battery life
     pServer->getAdvertising()->setMinInterval( 700 );
@@ -283,7 +271,6 @@ void blectl_setup( void ) {
     }
     powermgm_register_cb( POWERMGM_SILENCE_WAKEUP | POWERMGM_STANDBY | POWERMGM_WAKEUP, blectl_powermgm_event_cb, "powermgm blectl" );
     powermgm_register_loop_cb( POWERMGM_SILENCE_WAKEUP | POWERMGM_STANDBY | POWERMGM_WAKEUP, blectl_powermgm_loop_cb, "powermgm blectl loop" );
-    pmu_register_cb( PMUCTL_BATTERY_PERCENT | PMUCTL_CHARGING | PMUCTL_VBUS_PLUG, blectl_pmu_event_cb, "pmu blectl battery");
 }
 
 bool blectl_powermgm_event_cb( EventBits_t event, void *arg ) {
@@ -477,49 +464,14 @@ void blectl_read_config( void ) {
     file.close();
 }
 
-bool blectl_pmu_event_cb( EventBits_t event, void *arg ) {
-    static int32_t percent = 0;
-    static bool charging = false;
-    static bool plug = false;
-
-    switch( event ) {
-        case PMUCTL_BATTERY_PERCENT:
-            percent = *(int32_t*)arg;
-            if ( blectl_get_event( BLECTL_CONNECT ) ) {
-                blectl_update_battery( percent, charging, plug );
-            }
-            break;
-        case PMUCTL_CHARGING:
-            charging = *(bool*)arg;
-            break;
-        case PMUCTL_VBUS_PLUG:
-            plug = *(bool*)arg;
-            break;
-    }
-    return( true );
-}
-
-void blectl_update_battery( int32_t percent, bool charging, bool plug ) {
-    uint8_t level = (uint8_t)percent;
-    if (level > 100) level = 100;
-
-    pBatteryLevelCharacteristic->setValue(&level, 1);
-    pBatteryLevelCharacteristic->notify();
-
-    uint8_t batteryPowerState = BATTERY_POWER_STATE_BATTERY_PRESENT | 
-        (plug ? BATTERY_POWER_STATE_DISCHARGE_NOT_DISCHARING : BATTERY_POWER_STATE_DISCHARGE_DISCHARING) |
-        (charging? BATTERY_POWER_STATE_CHARGE_CHARING : BATTERY_POWER_STATE_CHARGE_NOT_CHARING) | 
-        (percent > 10 ? BATTERY_POWER_STATE_LEVEL_GOOD : BATTERY_POWER_STATE_LEVEL_CRITICALLY_LOW );
-    pBatteryPowerStateCharacteristic->setValue(&batteryPowerState, 1);
-    pBatteryPowerStateCharacteristic->notify();
-}
-
-void blectl_send_msg( char *msg ) {
+bool blectl_send_msg( char *msg ) {
     if ( blectl_get_event( BLECTL_CONNECT ) ) {
         blectl_msg_chain = msg_chain_add_msg( blectl_msg_chain, msg );
+        return true;
     }
     else {
         log_e("msg can't send while bluetooth is not connected");
+        return false;
     }
 }
 
