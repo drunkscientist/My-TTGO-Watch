@@ -5,9 +5,11 @@
 #include "esp3d.h"
 #include "gui/mainbar/mainbar.h"
 #include "hardware/wifictl.h"
+//#include <WiFi.h>
 
 
 
+//WiFiClient client;
 
 // App icon must have an size of 64x64 pixel with an alpha channel *******************
 // Use https://lvgl.io/tools/imageconverter to convert your images and set "true color with alpha"
@@ -17,9 +19,10 @@ LV_FONT_DECLARE(Ubuntu_48px);
 SynchronizedApplication esp3dApp;
 JsonConfig espconfig("esp3d.json");
 
-String esp3dServer, espData1, espData2;
+String esp3dServer, espDataPort, gCodeCmd;
 String ESPmainPairValue, ESPsecondPairValue, espupdatedAt;
-Label esp3dCurrentStatus, esp3dStatus, lblEspUpdatedAt;
+Label esp3dResponse, esp3dStatus, lblEspUpdatedAt;
+int val = 0;
 
 Style Ebig;
 
@@ -38,13 +41,13 @@ void esp3d_app_setup() {
 
     // Executed when user click "refresh" button or when a WiFi connection is established
     esp3dApp.synchronizeActionHandler([](SyncRequestSource source) {
-        auto result = fetch_esp3d_data(esp3dServer, espData1, espData2);//
+        auto result = fetch_esp3d_data(esp3dServer, espDataPort, gCodeCmd);//
         lblEspUpdatedAt.text(espupdatedAt);
         if (result)
         {
             esp3dApp.icon().widgetText(ESPmainPairValue);
-            esp3dCurrentStatus.text(ESPmainPairValue).alignInParentCenter(0, -30); //display data on widget
-            esp3dStatus.text(ESPsecondPairValue).alignOutsideBottomMid(esp3dCurrentStatus);
+            esp3dResponse.text(ESPmainPairValue).alignInParentCenter(0, -30); //display data on widget
+            esp3dStatus.text(ESPsecondPairValue).alignOutsideBottomMid(esp3dResponse);
             esp3dApp.icon().showIndicator(ICON_INDICATOR_OK);
         } else {
             // In case of fail
@@ -79,17 +82,17 @@ void build_main_esp_page()
 
     AppPage& screen = esp3dApp.mainPage(); // This is parent for all main screen widgets
 
-    esp3dCurrentStatus = Label(&screen);
-    esp3dCurrentStatus.text(espData1)
+    esp3dResponse = Label(&screen);
+    esp3dResponse.text(espDataPort)
         .alignText(LV_LABEL_ALIGN_CENTER)
         .style(Ebig, true)
         .alignInParentCenter(0, -30);
 
     esp3dStatus = Label(&screen);
-    esp3dStatus.text(espData2)
+    esp3dStatus.text(gCodeCmd)
         .alignText(LV_LABEL_ALIGN_CENTER)
         .style(Ebig, true)
-        .alignOutsideBottomMid(esp3dCurrentStatus);
+        .alignOutsideBottomMid(esp3dResponse);
 
     lblEspUpdatedAt = Label(&screen);
     lblEspUpdatedAt.text("loading...")
@@ -100,13 +103,13 @@ void build_main_esp_page()
 void build_esp_settings()
 {
     // Create full options list and attach items to variables
-    espconfig.addString("espServer", 32).assign(&esp3dServer);
-    espconfig.addString("esppair1", 12, "EUR_USD").assign(&espData1);
-    espconfig.addString("esppair2", 12).assign(&espData2);
+    espconfig.addString("192.168.1.215", 32).assign(&esp3dServer);
+    espconfig.addString("8888", 12).assign(&espDataPort);
+    espconfig.addString("M105", 12).assign(&gCodeCmd);
     espconfig.addBoolean("autosync", false);
     espconfig.addBoolean("widget", false);
 
-    // Switch desktop widget state based on the cuurent settings when changed
+    // Switch desktop widget state based on the current settings when changed
     espconfig.onLoadSaveHandler([](JsonConfig& cfg) {
         bool widgetEnabled = cfg.getBoolean("widget"); // Is app widget enabled?
         if (widgetEnabled)
@@ -118,11 +121,56 @@ void build_esp_settings()
     esp3dApp.useConfig(espconfig, true); // true - auto create settings page widgets
 }
 
-bool fetch_esp3d_data(String esp3dServer, String esppair1, String esppair2) {
+bool fetch_esp3d_data(String esp3dServer, String espDataPort, String esppair2) {
+
+  /* 
+
+    if (!client.connect(esp3dServer, espDataPort)){
+        Serial.println("Connection failed.");
+        return false;
+    }
+    const uint16_t port = 8888;
+    const char * host = "192.168.1.215"; // ip or dns
+
+    Serial.print("Connecting to ");
+    Serial.println(host);
+
+    // Use WiFiClient class to create TCP connections
+    WiFiClient client;
+    client.connect( host, port);
+
+    if (!client.connect(host, port)) {
+        Serial.println("Connection failed.");
+        return false;
+    }
+
+    client.print("M105");
+    int maxloops = 0;
+
+    //wait for the server's reply to become available
+    while (!client.available() && maxloops < 1000)
+    {
+        maxloops++;
+        delay(1); //delay 1 msec
+    }
+    if (client.available() > 0)
+    {
+        //read back one line from the server
+        espDataPort = client.readStringUntil('\r');
+        
+    }
+    else{
+    Serial.println("client.available() timed out ");
+    return false;
+  }
+
+    Serial.println("Closing connection.");
+    client.stop();
+
+ 
+  
     char url[256]=""; float p1=0, p2=0;
-    snprintf(url, sizeof(url), "http://192.168.1.210:3344/#/printer/a8/print", esp3dServer.c_str(), esppair1.c_str(), esppair2.c_str());
-    if (esppair2.length() == 0) // If single currency used - remove ',' char
-        url[strlen(url)-1]='\0';
+    snprintf(url, sizeof(url), "192.168.1.215", esp3dServer.c_str(), esppair1.c_str(), esppair2.c_str());
 
     JsonRequest request(320);
     if (!request.process(url)) {
@@ -131,14 +179,16 @@ bool fetch_esp3d_data(String esp3dServer, String esppair1, String esppair2) {
     }
 
     ESPmainPairValue = ESPsecondPairValue = "";
-    p1 = request[espData1].as<float>();
+    p1 = request[espDataPort].as<float>();
     ESPmainPairValue = String(p1, 2);
     if (request.size() > 1) { // Second currency pair available
-        p2 = request[espData2].as<float>();
+        p2 = request[gCodeCmd].as<float>();
         ESPsecondPairValue = String(p2, 2);
     }
+    
     espupdatedAt = request.formatCompletedAt("Upd: %d.%m %H:%M.%S");
     //log_i("fx rates: %d = %f, %f", doc.size(), p1, p2);
-
+*/
+  
     return true;
 }

@@ -39,6 +39,9 @@
 #include "ftpserver/ftpserver.h"
 #endif
 
+const char* ssid = "Fios-BX76S";
+const char* password = "put819host0797down";
+
 bool wifi_init = false;
 EventGroupHandle_t wifictl_status = NULL;
 portMUX_TYPE DRAM_ATTR wifictlMux = portMUX_INITIALIZER_UNLOCKED;
@@ -163,6 +166,7 @@ void wifictl_setup( void ) {
         else {
           wifictl_set_event( WIFICTL_SCAN );
           wifictl_send_event_cb( WIFICTL_ON, (void *)"scan ..." );
+          //WiFi.begin(ssid, password);
           WiFi.scanNetworks( true );
         }
     }, WiFiEvent_t::SYSTEM_EVENT_WIFI_READY );
