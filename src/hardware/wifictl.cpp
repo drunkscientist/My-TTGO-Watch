@@ -37,6 +37,8 @@
     #include "ftpserver/ftpserver.h"
 #endif
 
+
+
 bool wifi_init = false;
 EventGroupHandle_t wifictl_status = NULL;
 portMUX_TYPE DRAM_ATTR wifictlMux = portMUX_INITIALIZER_UNLOCKED;
@@ -145,9 +147,10 @@ void wifictl_setup( void ) {
             wifictl_send_event_cb( WIFICTL_ON, (void *)"wait for WPS" );
         }
         else {
-            wifictl_set_event( WIFICTL_SCAN );
-            wifictl_send_event_cb( WIFICTL_ON, (void *)"scan ..." );
-            WiFi.scanNetworks( true );
+
+          wifictl_set_event( WIFICTL_SCAN );
+          wifictl_send_event_cb( WIFICTL_ON, (void *)"scan ..." );
+          WiFi.scanNetworks( true );
         }
     }, WiFiEvent_t::SYSTEM_EVENT_WIFI_READY );
 
