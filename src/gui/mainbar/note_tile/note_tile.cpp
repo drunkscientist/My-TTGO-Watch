@@ -26,6 +26,8 @@
 
 static lv_obj_t *note_cont = NULL;
 static lv_obj_t *notelabel = NULL;
+lv_obj_t *displayed_value = NULL;
+//void first_button_press_cb( lv_obj_t * obj, lv_event_t event );
 
 static lv_style_t *style;
 static lv_style_t notestyle;
@@ -47,4 +49,6 @@ void note_tile_setup( void ) {
     lv_obj_reset_style_list( notelabel, LV_OBJ_PART_MAIN );
     lv_obj_add_style( notelabel, LV_OBJ_PART_MAIN, &notestyle );
     lv_obj_align( notelabel, NULL, LV_ALIGN_CENTER, 0, 0);
+
+    
 }

@@ -58,6 +58,7 @@ LV_IMG_DECLARE(exit_32px);
 LV_IMG_DECLARE(setup_32px);
 LV_IMG_DECLARE(refresh_32px);
 LV_IMG_DECLARE(play_32px);
+LV_IMG_DECLARE(esp3d_64px);
 LV_FONT_DECLARE(Ubuntu_72px);
 LV_FONT_DECLARE(Ubuntu_32px);
 
@@ -75,11 +76,69 @@ WiFiClient client;
 String command = "M105\n"; 
 String returnData;
 
+//void esp_app_setup( void ){
+     // Create and register new application
+    //   params: name, icon, auto add "refresh" button (this app will use synchronize function of the SynchronizedApplication class).
+    //   Also, you can configure count of the required pages in the next two params (to have more app screens).
+    //espApp.init("esp3d", &esp3d_64px, true, 1, 1);
+
+    /*
+    // Executed when user click "refresh" button or when a WiFi connection is established
+    espApp.synchronizeActionHandler([](SyncRequestSource source) {
+        auto result = fetch_fx_rates();
+        lblUpdatedAt.text(updatedAt);
+        if (result)
+        {
+            fxratesApp.icon().widgetText(mainPairValue);
+            lblCurrency1.text(mainPairValue).alignInParentCenter(0, -30);
+            lblCurrency2.text(secondPairValue).alignOutsideBottomMid(lblCurrency1);
+            fxratesApp.icon().showIndicator(ICON_INDICATOR_OK);
+        } else {
+            // In case of fail
+            espApp.icon().showIndicator(ICON_INDICATOR_FAIL);
+        }
+    });
+    */
+//}
+
 void build_more_esp_settings(){
     esp3d_config.addString("M105\n", 5 ).assign(&command);
     //esp3d_config.addString("192.168.1.215", 32).assign(&host);
     //espApp.useConfig(esp3d_config, false);
+    esp3d_config.addBoolean("autosync", false);
+    esp3d_config.addBoolean("widget", false);
+/*
+    // Switch desktop widget state based on the cuurent settings when changed
+   esp3d_config.onLoadSaveHandler([](JsonConfig& cfg) {
+        bool widgetEnabled = cfg.getBoolean("widget"); // Is app widget enabled?
+        if (widgetEnabled)
+            espApp.icon().registerDesktopWidget("esp3d", &esp3d_64px);
+        else
+            espApp.icon().unregisterDesktopWidget();
+    });*/
+
+    espApp.useConfig(esp3d_config, true);
 }
+    
+
+/*bool esp3d_wifictl_event_cb(EventBits_t event, void *arg) {
+    switch(event) {
+        case WIFICTL_CONNECT:
+            espApp.icon().hideIndicator();
+            if ( config.getBoolean("autosync", false ) )
+                espApp.startSynchronization(SyncRequestSource::ConnectionEvent);
+            break;
+
+        case WIFICTL_OFF:
+            espApp.icon().hideIndicator();
+            break;
+    }
+    return true;
+}
+
+*/
+
+
 
 void build_buttons(){
     lv_obj_t * exit_btn = lv_imgbtn_create( esp_app_main_tile, NULL);
@@ -124,11 +183,7 @@ void build_buttons(){
     lv_obj_align(second_button, esp_app_main_tile, LV_ALIGN_IN_TOP_RIGHT, 0, 0 );
     lv_obj_set_event_cb( second_button, second_button_press_cb );
 }
-
-void esp_app_main_setup( uint32_t tile_num ) {
-
-    esp_app_main_tile = mainbar_get_tile_obj( tile_num );
-    lv_style_copy( &esp_app_main_style, mainbar_get_style() );
+void build_gauge(){
 
     static lv_style_t gaugeStyle;
     lv_style_init(&gaugeStyle);
@@ -158,17 +213,20 @@ void esp_app_main_setup( uint32_t tile_num ) {
     lv_gauge_set_value(heatGauge, 1, 0);
     lv_obj_set_event_cb( heatGauge, gauge_press_cb );
     
+   }
+void esp_app_main_setup( uint32_t tile_num ) {
+
+   
+    esp_app_main_tile = mainbar_get_tile_obj( tile_num );
+    lv_style_copy( &esp_app_main_style, mainbar_get_style() );
+
+    build_gauge();
     build_buttons(); //for collapsablility
 
     lv_obj_move_background(heatGauge);
     //lv_gauge_set_needle_img(heatGauge, &img_hand, 4, 4);
 
-
-
-    //build_more_esp_settings(); //still have some redundancy to reduce
-    
-/*
-*/
+//    build_more_esp_settings(); //still have some redundancy to reduce
 
     returnDataObj = lv_label_create(esp_app_main_tile, NULL);
     lv_label_set_long_mode(returnDataObj, LV_LABEL_LONG_SROLL_CIRC);     //Circular scroll
@@ -188,9 +246,11 @@ void esp_app_main_setup( uint32_t tile_num ) {
 /*
     */
 
-    //returnDataObj.text(returnData).alignInParentCenter();
+   
     // create an task that runs every so often, REGARDLESS WHAT WATCH SCREEN IS ACTIVE
     //_esp_app_task = lv_task_create( esp_app_task, 3000, LV_TASK_PRIO_MID, NULL );
+
+    //wifictl_register_cb(WIFICTL_CONNECT | WIFICTL_OFF, fxrates_wifictl_event_cb, "fxrates app widget");
 
 
 }
@@ -307,8 +367,8 @@ void sendGcode(){
         returnData = client.readStringUntil('\r');
         //returnData = client.readString();
         Serial.println(returnData);
-        strncpy(testChar, returnData.c_str(), sizeof(returnData));
-        lv_label_set_text(returnDataObj, testChar);
+        //strncpy(testChar, returnData.c_str(), strlen(returnData));
+        lv_label_set_text(returnDataObj, returnData.c_str());
 
         //snprintf(testChar, returnData.length, "%s", returnData.c_str());
 
@@ -353,8 +413,6 @@ void gauge_press_cb( lv_obj_t * obj, lv_event_t event ){
                 break;
     }
 }
-
-
 
 void esp_app_task( lv_task_t * task ) {
     // put your code here

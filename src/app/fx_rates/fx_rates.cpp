@@ -67,7 +67,6 @@ bool fxrates_wifictl_event_cb(EventBits_t event, void *arg) {
     }
     return true;
 }
-
 void build_main_page()
 {
     big = Style::Create(mainbar_get_style(), true);
