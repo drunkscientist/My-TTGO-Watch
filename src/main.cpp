@@ -118,8 +118,8 @@ void setup()
     
     //fxrates_app_setup();
     //powermeter_app_setup();
-	//FindPhone_setup();
-    //soundboard_app_setup();
+	FindPhone_setup();
+    soundboard_app_setup();
 
   	/*
      *    
