@@ -26,4 +26,7 @@
 
     void esp_app_main_setup( uint32_t tile_num );
 
+    //void sendGcode();
+    //void esp_app_setup();
+
 #endif // _EXAMPLE_APP_MAIN_H

@@ -26,6 +26,7 @@
 #include "gui/mainbar/setup_tile/setup_tile.h"
 #include "gui/statusbar.h"
 #include "gui/setup.h"
+#include "gui/widget_styles.h"
 
 #include "hardware/sound.h"
 #include "hardware/motor.h"
@@ -57,14 +58,14 @@ static void sound_vibe_setup_event_cb( lv_obj_t * obj, lv_event_t event );
 bool sound_soundctl_event_cb( EventBits_t event, void *arg );
 
 void sound_settings_tile_setup( void ) {
+    if ( !sound_get_available() ) {
+        return;
+    }
     // get an app tile and copy mainstyle
     sound_tile_num = mainbar_add_app_tile( 1, 2, "sound setup" );
     sound_settings_tile = mainbar_get_tile_obj( sound_tile_num );
 
-    lv_style_copy( &sound_settings_style, mainbar_get_style() );
-    lv_style_set_bg_color( &sound_settings_style, LV_OBJ_PART_MAIN, LV_COLOR_GRAY);
-    lv_style_set_bg_opa( &sound_settings_style, LV_OBJ_PART_MAIN, LV_OPA_100);
-    lv_style_set_border_width( &sound_settings_style, LV_OBJ_PART_MAIN, 0);
+    lv_style_copy( &sound_settings_style, ws_get_setup_tile_style() );
     lv_obj_add_style( sound_settings_tile, LV_OBJ_PART_MAIN, &sound_settings_style );
 
     sound_setup_icon = setup_register( "sound", &sound_64px, enter_sound_setup_event_cb );
@@ -90,7 +91,7 @@ void sound_settings_tile_setup( void ) {
     lv_obj_align( vibe_cont, sound_settings_tile, LV_ALIGN_IN_TOP_RIGHT, 0, 75 );
     sound_vibe_onoff = lv_switch_create( vibe_cont, NULL );
     lv_obj_add_protect( sound_vibe_onoff, LV_PROTECT_CLICK_FOCUS);
-    lv_obj_add_style( sound_vibe_onoff, LV_SWITCH_PART_INDIC, mainbar_get_switch_style() );
+    lv_obj_add_style( sound_vibe_onoff, LV_SWITCH_PART_INDIC, ws_get_switch_style() );
     lv_switch_off( sound_vibe_onoff, LV_ANIM_ON );
     lv_obj_align( sound_vibe_onoff, vibe_cont, LV_ALIGN_IN_RIGHT_MID, -5, 0 );
     lv_obj_set_event_cb( sound_vibe_onoff, sound_vibe_setup_event_cb );
@@ -105,7 +106,7 @@ void sound_settings_tile_setup( void ) {
     lv_obj_align( sound_enable_cont, vibe_cont, LV_ALIGN_OUT_BOTTOM_MID, 0, 0 );
     sound_enable = lv_switch_create( sound_enable_cont, NULL );
     lv_obj_add_protect( sound_enable, LV_PROTECT_CLICK_FOCUS);
-    lv_obj_add_style( sound_enable, LV_SWITCH_PART_INDIC, mainbar_get_switch_style() );
+    lv_obj_add_style( sound_enable, LV_SWITCH_PART_INDIC, ws_get_switch_style() );
     lv_switch_off( sound_enable, LV_ANIM_ON );
     lv_obj_align( sound_enable, sound_enable_cont, LV_ALIGN_IN_RIGHT_MID, -5, 0 );
     lv_obj_set_event_cb( sound_enable, sound_enable_setup_event_cb );
@@ -121,8 +122,8 @@ void sound_settings_tile_setup( void ) {
     lv_obj_align( sound_volume_cont, sound_enable_cont, LV_ALIGN_OUT_BOTTOM_MID, 0, 0 );
     sound_volume_slider = lv_slider_create( sound_volume_cont, NULL );
     lv_obj_add_protect( sound_volume_slider, LV_PROTECT_CLICK_FOCUS);
-    lv_obj_add_style( sound_volume_slider, LV_SLIDER_PART_INDIC, mainbar_get_slider_style() );
-    lv_obj_add_style( sound_volume_slider, LV_SLIDER_PART_KNOB, mainbar_get_slider_style() );
+    lv_obj_add_style( sound_volume_slider, LV_SLIDER_PART_INDIC, ws_get_slider_style() );
+    lv_obj_add_style( sound_volume_slider, LV_SLIDER_PART_KNOB, ws_get_slider_style() );
     lv_slider_set_range( sound_volume_slider, 1, 100 );
     lv_obj_set_size(sound_volume_slider, lv_disp_get_hor_res( NULL ) - 100 , 10 );
     lv_obj_align( sound_volume_slider, sound_volume_cont, LV_ALIGN_IN_TOP_RIGHT, -30, 10 );
@@ -135,7 +136,6 @@ void sound_settings_tile_setup( void ) {
     lv_img_set_src( sound_icon, &sound_32px );
     lv_obj_align( sound_icon, sound_volume_cont, LV_ALIGN_IN_LEFT_MID, 15, 0 );
 
-    log_i("Setting initial volume configuration to %d", sound_get_volume_config());
     lv_slider_set_value( sound_volume_slider, sound_get_volume_config(), LV_ANIM_OFF );
     char temp[16]="";
     snprintf( temp, sizeof( temp ), "volume %d", lv_slider_get_value( sound_volume_slider ) );
@@ -149,10 +149,8 @@ void sound_settings_tile_setup( void ) {
         lv_switch_off( sound_vibe_onoff, LV_ANIM_OFF );
 
     if ( sound_get_enabled_config() ) {
-        log_i("Setting initial volume configuration to enabled");
         lv_switch_on( sound_enable, LV_ANIM_OFF );
     } else {
-        log_i("Setting initial volume configuration to disabled");
         lv_switch_off( sound_enable, LV_ANIM_OFF );
     }
 

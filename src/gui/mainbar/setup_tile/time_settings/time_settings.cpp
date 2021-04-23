@@ -27,11 +27,14 @@
 #include "gui/mainbar/setup_tile/setup_tile.h"
 #include "gui/statusbar.h"
 #include "gui/setup.h"
+#include "gui/widget_styles.h"
+
 #include "hardware/timesync.h"
 #include "hardware/motor.h"
-#include "hardware/alloc.h"
 
-#include "hardware/json_psram_allocator.h"
+#include "utils/alloc.h"
+#include "utils/json_psram_allocator.h"
+
 // Source: https://raw.githubusercontent.com/nayarsystems/posix_tz_db/master/zones.json
 // 2020a-1
 extern const uint8_t timezones_json_start[] asm("_binary_src_gui_mainbar_setup_tile_time_settings_timezones_json_start");
@@ -88,9 +91,9 @@ static void time_setting_set_region_location( const char *timezone ) {
     location = location_tmp;
     region = region_tmp;
     free( timezone_tmp );
-    log_i("timezone = %s", timezone );
-    log_i("region = %s", region.c_str() );
-    log_i("location = %s", location.c_str() );
+    log_d("timezone = %s", timezone );
+    log_d("region = %s", region.c_str() );
+    log_d("location = %s", location.c_str() );
 }
 
 int32_t time_settings_create_regionlist( const char* selected_region ) {
@@ -128,7 +131,7 @@ int32_t time_settings_create_regionlist( const char* selected_region ) {
         }        
     }
     doc.clear();
-    log_i("selected region entry = %d", selected_entry );
+    log_d("selected region entry = %d", selected_entry );
     return( selected_entry );
 }
 
@@ -169,7 +172,7 @@ int32_t time_settings_create_locationlist( const char* selected_region, const ch
         }        
     }
     doc.clear();
-    log_i("selected location entry = %d", selected_entry );
+    log_d("selected location entry = %d", selected_entry );
     return( selected_entry );
 }
 
@@ -212,10 +215,7 @@ void time_settings_tile_setup( void ) {
     // get an app tile and copy mainstyle
     time_tile_num = mainbar_add_app_tile( 1, 1, "time setup" );
     time_settings_tile = mainbar_get_tile_obj( time_tile_num );
-    lv_style_copy( &time_settings_style, mainbar_get_style() );
-    lv_style_set_bg_color( &time_settings_style, LV_OBJ_PART_MAIN, LV_COLOR_GRAY);
-    lv_style_set_bg_opa( &time_settings_style, LV_OBJ_PART_MAIN, LV_OPA_100);
-    lv_style_set_border_width( &time_settings_style, LV_OBJ_PART_MAIN, 0);
+    lv_style_copy( &time_settings_style, ws_get_setup_tile_style() );
     lv_obj_add_style( time_settings_tile, LV_OBJ_PART_MAIN, &time_settings_style );
 
     icon_t *time_setup_icon = setup_register( "time", &time_64px, enter_time_setup_event_cb );
@@ -241,7 +241,7 @@ void time_settings_tile_setup( void ) {
     lv_obj_align( wifisync_cont, time_settings_tile, LV_ALIGN_IN_TOP_RIGHT, 0, 75 );
     wifisync_onoff = lv_switch_create( wifisync_cont, NULL );
     lv_obj_add_protect( wifisync_onoff, LV_PROTECT_CLICK_FOCUS);
-    lv_obj_add_style( wifisync_onoff, LV_SWITCH_PART_INDIC, mainbar_get_switch_style() );
+    lv_obj_add_style( wifisync_onoff, LV_SWITCH_PART_INDIC, ws_get_switch_style() );
     lv_switch_off( wifisync_onoff, LV_ANIM_ON );
     lv_obj_align( wifisync_onoff, wifisync_cont, LV_ALIGN_IN_RIGHT_MID, -5, 0 );
     lv_obj_set_event_cb( wifisync_onoff, wifisync_onoff_event_handler );
@@ -256,7 +256,7 @@ void time_settings_tile_setup( void ) {
     lv_obj_align( clock_fmt_cont, wifisync_cont, LV_ALIGN_OUT_BOTTOM_MID, 0, 0 );
     clock_fmt_onoff = lv_switch_create( clock_fmt_cont, NULL );
     lv_obj_add_protect( clock_fmt_onoff, LV_PROTECT_CLICK_FOCUS);
-    lv_obj_add_style( clock_fmt_onoff, LV_SWITCH_PART_INDIC, mainbar_get_switch_style() );
+    lv_obj_add_style( clock_fmt_onoff, LV_SWITCH_PART_INDIC, ws_get_switch_style() );
     lv_switch_off( clock_fmt_onoff, LV_ANIM_ON );
     lv_obj_align( clock_fmt_onoff, clock_fmt_cont, LV_ALIGN_IN_RIGHT_MID, -5, 0 );
     lv_obj_set_event_cb( clock_fmt_onoff, clock_fmt_onoff_event_handler );

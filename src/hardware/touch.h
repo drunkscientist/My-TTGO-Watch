@@ -20,16 +20,38 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 #ifndef _TOUCH_H
-
     #define _TOUCH_H
 
     #include "TTGO.h"
+    #include "callback.h"
+
+    #define TOUCH_UPDATE        _BV(0)
+
+    typedef struct {
+        bool touched;
+        int16_t x_coor;
+        int16_t y_coor;
+    } touch_t;
+
     /**
      * @brief setup touch
      */
     void touch_setup( void );
-
+    /**
+     * @brief registers a callback function which is called on a corresponding event
+     * 
+     * @param   event  possible values: TOUCH_UPDATE
+     * @param   callback_func   pointer to the callback function 
+     * @param   id      program id
+     */
+    bool touch_register_cb( EventBits_t event, CALLBACK_FUNC callback_func, const char *id );
+    /**
+     * @brief lock the touch interface
+     */
     bool touch_lock_take( void );
+    /**
+     * @brief unlock the touch interface
+     */
     void touch_lock_give( void );
 
 #endif // _TOUCH_H

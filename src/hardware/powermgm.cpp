@@ -39,8 +39,7 @@
 #include "display.h"
 #include "rtcctl.h"
 #include "sound.h"
-
-#include "gui/mainbar/mainbar.h"
+#include "gpsctl.h"
 
 EventGroupHandle_t powermgm_status = NULL;
 portMUX_TYPE DRAM_ATTR powermgmMux = portMUX_INITIALIZER_UNLOCKED;
@@ -54,19 +53,7 @@ bool powermgm_send_event_cb( EventBits_t event );
 bool powermgm_send_loop_event_cb( EventBits_t event );
 
 void powermgm_setup( void ) {
-
     powermgm_status = xEventGroupCreate();
-
-    pmu_setup();
-    bma_setup();
-    wifictl_setup();
-    touch_setup();
-    timesync_setup();
-    rtcctl_setup();
-    blectl_read_config();
-    sound_read_config();
-    
-    powermgm_set_event( POWERMGM_WAKEUP );
 }
 
 void powermgm_loop( void ) {
@@ -75,7 +62,7 @@ void powermgm_loop( void ) {
      * check if power button was release
      */
     if( powermgm_get_event( POWERMGM_POWER_BUTTON ) ) {
-        if ( powermgm_get_event( POWERMGM_STANDBY ) || powermgm_get_event( POWERMGM_SILENCE_WAKEUP ) ) {
+        if ( powermgm_get_event( POWERMGM_STANDBY | POWERMGM_SILENCE_WAKEUP ) ) {
             powermgm_set_event( POWERMGM_WAKEUP_REQUEST );
         }
         else {
@@ -90,7 +77,7 @@ void powermgm_loop( void ) {
         lv_disp_trig_activity( NULL );
         powermgm_clear_event( POWERMGM_WAKEUP_REQUEST );
     }
-  
+
     /*
      * handle powermgm request
      */

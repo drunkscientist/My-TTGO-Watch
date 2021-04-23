@@ -13,11 +13,11 @@
 
 // App icon must have an size of 64x64 pixel with an alpha channel *******************
 // Use https://lvgl.io/tools/imageconverter to convert your images and set "true color with alpha"
-LV_IMG_DECLARE(esp3d_64px); 
+LV_IMG_DECLARE(example_64px); 
 LV_FONT_DECLARE(Ubuntu_48px);
 
-SynchronizedApplication esp3dApp;
-JsonConfig espconfig("esp3d.json");
+SynchronizedApplication exampleApp;
+JsonConfig exampleconfig("example.json");
 
 String esp3dServer, espDataPort, gCodeCmd;
 String ESPmainPairValue, ESPsecondPairValue, espupdatedAt;
@@ -29,29 +29,29 @@ Style Ebig;
 /*
  * setup routine for application
  */
-void esp3d_app_setup() {
+void example_app_setup() {
     // Create and register new application
     //   params: name, icon, auto add "refresh" button (this app will use synchronize function of the SynchronizedApplication class).
     //   Also, you can configure count of the required pages in the next two params (to have more app screens).
-    esp3dApp.init("esp3d", &esp3d_64px, true, 1, 1);
+    exampleApp.init("example", &example_64px, true, 1, 1);
     
     // Build and configure application
-    build_main_esp_page();
-    build_esp_settings();
+    build_main_example_page();
+    build_example_settings();
 
     // Executed when user click "refresh" button or when a WiFi connection is established
-    esp3dApp.synchronizeActionHandler([](SyncRequestSource source) {
-        auto result = fetch_esp3d_data(esp3dServer, espDataPort, gCodeCmd);//
+    exampleApp.synchronizeActionHandler([](SyncRequestSource source) {
+        auto result = fetch_example_data(esp3dServer, espDataPort, gCodeCmd);//
         lblEspUpdatedAt.text(espupdatedAt);
         if (result)
         {
-            esp3dApp.icon().widgetText(ESPmainPairValue);
+            exampleApp.icon().widgetText(ESPmainPairValue);
             esp3dResponse.text(ESPmainPairValue).alignInParentCenter(0, -30); //display data on widget
             esp3dStatus.text(ESPsecondPairValue).alignOutsideBottomMid(esp3dResponse);
-            esp3dApp.icon().showIndicator(ICON_INDICATOR_OK);
+            exampleApp.icon().showIndicator(ICON_INDICATOR_OK);
         } else {
             // In case of fail
-            esp3dApp.icon().showIndicator(ICON_INDICATOR_FAIL);
+            exampleApp.icon().showIndicator(ICON_INDICATOR_FAIL);
         }
     });
     
@@ -62,28 +62,28 @@ void esp3d_app_setup() {
 bool esp3d_wifictl_event_cb(EventBits_t event, void *arg) {
     switch(event) {
         case WIFICTL_CONNECT:
-            esp3dApp.icon().hideIndicator();
-            if ( espconfig.getBoolean("autosync", false ) )
-                esp3dApp.startSynchronization(SyncRequestSource::ConnectionEvent);
+            exampleApp.icon().hideIndicator();
+            if ( exampleconfig.getBoolean("autosync", false ) )
+                exampleApp.startSynchronization(SyncRequestSource::ConnectionEvent);
             break;
 
         case WIFICTL_OFF:
-            esp3dApp.icon().hideIndicator();
+            exampleApp.icon().hideIndicator();
             break;
     }
     return true;
 }
 
-void build_main_esp_page()
+void build_main_example_page()
 {
     Ebig = Style::Create(mainbar_get_style(), true);
     Ebig.textFont(&Ubuntu_48px)
       .textOpacity(LV_OPA_80);
 
-    AppPage& screen = esp3dApp.mainPage(); // This is parent for all main screen widgets
+    AppPage& screen = exampleApp.mainPage(); // This is parent for all main screen widgets
 
     esp3dResponse = Label(&screen);
-    esp3dResponse.text(espDataPort)
+    esp3dResponse.text("something here")
         .alignText(LV_LABEL_ALIGN_CENTER)
         .style(Ebig, true)
         .alignInParentCenter(0, -30);
@@ -100,28 +100,28 @@ void build_main_esp_page()
         .alignInParentTopLeft(5, 5);
 }
 
-void build_esp_settings()
+void build_example_settings()
 {
     // Create full options list and attach items to variables
-    espconfig.addString("192.168.1.215", 32).assign(&esp3dServer);
-    espconfig.addString("8888", 12).assign(&espDataPort);
-    espconfig.addString("M105", 12).assign(&gCodeCmd);
-    espconfig.addBoolean("autosync", false);
-    espconfig.addBoolean("widget", false);
+    exampleconfig.addString("192.168.1.215", 32).assign(&esp3dServer);
+    exampleconfig.addString("8888", 12).assign(&espDataPort);
+    exampleconfig.addString("M105", 12).assign(&gCodeCmd);
+    exampleconfig.addBoolean("autosync", false);
+    exampleconfig.addBoolean("widget", false);
 
     // Switch desktop widget state based on the current settings when changed
-    espconfig.onLoadSaveHandler([](JsonConfig& cfg) {
+    exampleconfig.onLoadSaveHandler([](JsonConfig& cfg) {
         bool widgetEnabled = cfg.getBoolean("widget"); // Is app widget enabled?
         if (widgetEnabled)
-            esp3dApp.icon().registerDesktopWidget("esp3d", &esp3d_64px);
+            exampleApp.icon().registerDesktopWidget("esp3d", &example_64px);
         else
-            esp3dApp.icon().unregisterDesktopWidget();
+            exampleApp.icon().unregisterDesktopWidget();
     });
 
-    esp3dApp.useConfig(espconfig, true); // true - auto create settings page widgets
+    exampleApp.useConfig(exampleconfig, true); // true - auto create settings page widgets
 }
 
-bool fetch_esp3d_data(String esp3dServer, String espDataPort, String esppair2) {
+bool fetch_example_data(String esp3dServer, String espDataPort, String esppair2) {
 
   /* 
 

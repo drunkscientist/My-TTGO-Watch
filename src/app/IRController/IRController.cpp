@@ -26,6 +26,7 @@
 #include "quickglui/quickglui.h"
 
 #include "gui/mainbar/mainbar.h"
+#include "gui/widget_styles.h"
 #include "hardware/blectl.h"
 #include <IRremoteESP8266.h>
 #include <IRsend.h>
@@ -38,7 +39,7 @@ LV_IMG_DECLARE(IRController_64px);
 
 IRConfig irConfig;
 Application irController;
-IRsend irsend(13);
+IRsend irsend(TWATCH_2020_IR_PIN);
 Style irDeskStyle;
 
 /*
@@ -62,7 +63,7 @@ void IRController_build_UI(IRControlSettingsAction settingsAction)
     // It also will auto-align child buttons on it:
     Container& desk = main.createChildContainer(LV_LAYOUT_PRETTY_MID);
     
-    irDeskStyle = Style::Create(mainbar_get_style(), true);
+    irDeskStyle = Style::Create(ws_get_mainbar_style(), true);
     irDeskStyle.paddingInner(irConfig.defSpacing);
     irDeskStyle.padding(7, 16, 7, 16);
     desk.style(irDeskStyle);
@@ -91,8 +92,8 @@ void IRController_build_UI(IRControlSettingsAction settingsAction)
 }
 
 void execute_ir_cmd(InfraButton* config) {
-    pinMode(13, OUTPUT);
-    digitalWrite(13, LOW); // No Current Limiting so keep it off (!!!)
+    pinMode(TWATCH_2020_IR_PIN, OUTPUT);
+    digitalWrite(TWATCH_2020_IR_PIN, LOW); // No Current Limiting so keep it off (!!!)
 
     switch (config->mode)
     {
@@ -125,7 +126,7 @@ void execute_ir_cmd(InfraButton* config) {
     }
 
     delay(50);
-    digitalWrite(13, LOW); // No Current Limiting so keep it off (!!!)
+    digitalWrite(TWATCH_2020_IR_PIN, LOW); // No Current Limiting so keep it off (!!!)
     log_i("IR button clicked: %s", config->name);
 }
 

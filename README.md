@@ -9,29 +9,17 @@
 
 # My-TTGO-Watch
 
-A smartwatch based on ESP32 from LilyGo. Currently under development.
+A smartwatch based on ESP32 from LilyGo. Currently supoort for T-Watch2020 V1. T-Watch2020 V3 and V2 is added, but untested and not complete for lack of a watch.
 
 # Telegram chatgroup
 
 Telegram chatgroup is here:
 https://t.me/TTGO_Watch
 
-# Install
-
-Clone this repository and open it with platformIO. Build and upload. On a terminal in vscode you can do it with
-
-```bash
-pio run -t upload
-```
-
-or simple press "build and upload" in platformIO.
-
 # known issues
 
 * the webserver crashes the ESP32 really often
 * the battery indicator is not accurate, rather a problem with the power management unit ( axp202 )
-* from time to time the esp32 crashes accidentally
-* and some other small things
 
 # how to use
 
@@ -49,17 +37,18 @@ Cf. [contribution guide](CONTRIBUTING.md)
 
 # Interface
 
-![screenshot](https://github.com/sharandac/My-TTGO-Watch/blob/master/images/screen1.png)
-![screenshot](https://github.com/sharandac/My-TTGO-Watch/blob/master/images/screen2.png)
-![screenshot](https://github.com/sharandac/My-TTGO-Watch/blob/master/images/screen3.png)
-![screenshot](https://github.com/sharandac/My-TTGO-Watch/blob/master/images/screen4.png)
-![screenshot](https://github.com/sharandac/My-TTGO-Watch/blob/master/images/screen5.png)
-![screenshot](https://github.com/sharandac/My-TTGO-Watch/blob/master/images/screen6.png)
-![screenshot](https://github.com/sharandac/My-TTGO-Watch/blob/master/images/screen7.png)
-![screenshot](https://github.com/sharandac/My-TTGO-Watch/blob/master/images/screen8.png)
-![screenshot](https://github.com/sharandac/My-TTGO-Watch/blob/master/images/screen9.png)
-![screenshot](https://github.com/sharandac/My-TTGO-Watch/blob/master/images/screen10.png)
-![screenshot](https://github.com/sharandac/My-TTGO-Watch/blob/master/images/screen11.png)
+![screenshot](images/screen1.png)
+![screenshot](images/screen2.png)
+![screenshot](images/screen3.png)
+![screenshot](images/screen4.png)
+![screenshot](images/screen5.png)
+![screenshot](images/screen6.png)
+![screenshot](images/screen7.png)
+![screenshot](images/screen8.png)
+![screenshot](images/screen9.png)
+![screenshot](images/screen10.png)
+![screenshot](images/screen11.png)
+![screenshot](images/screen12.png)
 
 
 # Contributors

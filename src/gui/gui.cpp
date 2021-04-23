@@ -43,79 +43,125 @@
 #include "mainbar/setup_tile/wlan_settings/wlan_settings.h"
 #include "mainbar/setup_tile/bluetooth_settings/bluetooth_settings.h"
 #include "mainbar/setup_tile/sound_settings/sound_settings.h"
+#include "mainbar/setup_tile/gps_settings/gps_settings.h"
 
 #include "mainbar/setup_tile/utilities/utilities.h"
 
 #include "hardware/powermgm.h"
 #include "hardware/display.h"
 #include "hardware/motor.h"
+#include "hardware/touch.h"
 
 lv_obj_t *img_bin;
+static volatile bool interact = false;
+static volatile bool first_run = true;
 
+bool gui_touch_event_cb( EventBits_t event, void *arg );
 bool gui_powermgm_event_cb( EventBits_t event, void *arg );
 bool gui_powermgm_loop_event_cb( EventBits_t event, void *arg );
 
 void gui_setup( void )
 {
-    //Create wallpaper
+    /*
+     * Create an blank wallpaper
+     */
     img_bin = lv_img_create( lv_scr_act() , NULL );
     lv_obj_set_width( img_bin, lv_disp_get_hor_res( NULL ) );
     lv_obj_set_height( img_bin, lv_disp_get_ver_res( NULL ) );
     lv_obj_align( img_bin, NULL, LV_ALIGN_CENTER, 0, 0 );
 
     mainbar_setup();
-    /* add the four mainbar screens */
+    /*
+     * add the four mainbar screens
+     */
     main_tile_setup();
     app_tile_setup();
     note_tile_setup();
     setup_tile_setup();
-
+    /*
+     * add input and status
+     */
     statusbar_setup();
     quickbar_setup();
     keyboard_setup();
     num_keyboard_setup();
-    
-    /* add setup */
+    /*
+     * add setup tool to the setup tile
+     */
     battery_settings_tile_setup();
     display_settings_tile_setup();
     move_settings_tile_setup();
     wlan_settings_tile_setup();
     bluetooth_settings_tile_setup();
     time_settings_tile_setup();
+    gps_settings_tile_setup();
     update_tile_setup();
     utilities_tile_setup();
     sound_settings_tile_setup();
-
+    /*
+     * trigger an activity
+     */
     lv_disp_trig_activity( NULL );
-
+    /*
+     * setup background image
+     */
     gui_set_background_image( display_get_background_image() );
-
+    /*
+     * register the main powermgm routine for the gui
+     */
     powermgm_register_cb( POWERMGM_STANDBY | POWERMGM_WAKEUP | POWERMGM_SILENCE_WAKEUP, gui_powermgm_event_cb, "gui" );
     powermgm_register_loop_cb( POWERMGM_WAKEUP | POWERMGM_SILENCE_WAKEUP, gui_powermgm_loop_event_cb, "gui loop" );
+    touch_register_cb( TOUCH_UPDATE, gui_touch_event_cb, "gui touch" );
+}
+
+bool gui_touch_event_cb( EventBits_t event, void *arg ) {
+    switch( event ) {
+        case TOUCH_UPDATE:
+            interact = true;
+            break;
+    }
+    return( true );
 }
 
 bool gui_powermgm_event_cb( EventBits_t event, void *arg ) {
     TTGOClass *ttgo = TTGOClass::getWatch();
 
     switch ( event ) {
-        case POWERMGM_STANDBY:          log_i("go standby");
+        case POWERMGM_STANDBY:          /*
+                                         * get back to maintile if configure and
+                                         * stop all LVGL activitys and tasks
+                                         */
+                                        log_i("go standby");
                                         if ( !display_get_block_return_maintile() ) {
                                             mainbar_jump_to_maintile( LV_ANIM_OFF );
                                         }                               
                                         ttgo->stopLvglTick();
                                         break;
-        case POWERMGM_WAKEUP:           log_i("go wakeup");
+        case POWERMGM_WAKEUP:           /*
+                                         * resume all LVGL activitys and tasks
+                                         */
+                                        log_i("go wakeup");
                                         ttgo->startLvglTick();
                                         lv_disp_trig_activity( NULL );
+                                        interact = false;
                                         break;
-        case POWERMGM_SILENCE_WAKEUP:   log_i("go silence wakeup");
+        case POWERMGM_SILENCE_WAKEUP:   /*
+                                         * resume all LVGL activitys and tasks
+                                         */
+                                        log_i("go silence wakeup");
                                         ttgo->startLvglTick();
                                         lv_disp_trig_activity( NULL );
                                         break;
         case POWERMGM_DISABLE_INTERRUPTS:
+                                        /*
+                                         * stop LVGL ticks
+                                         */
                                         TTGOClass::getWatch()->stopLvglTick();
                                         break;
         case POWERMGM_ENABLE_INTERRUPTS:
+                                        /*
+                                         * stop LVGL ticks
+                                         */
                                         TTGOClass::getWatch()->startLvglTick();
                                         break;                                        
     }
@@ -173,13 +219,35 @@ void gui_set_background_image ( uint32_t background_image ) {
 }
 
 bool gui_powermgm_loop_event_cb( EventBits_t event, void *arg ) {
+    uint32_t timeout = 0;
+    
     switch ( event ) {
-        case POWERMGM_WAKEUP:           if ( lv_disp_get_inactive_time( NULL ) < display_get_timeout() * 1000 || display_get_timeout() == DISPLAY_MAX_TIMEOUT ) {
+        case POWERMGM_WAKEUP:           /**
+                                         * prevent fast timeout on first run after start or reboot
+                                         */
+                                        if ( first_run ) {
+                                            first_run = false;
+                                            interact = true;
+                                            log_i("set normal timeout on first run");
+                                        }
+                                        /**
+                                         * an first interaction after wakeup use normal timeout
+                                         * otherwise use 5sec timeout to save energy
+                                         */
+                                        if ( interact ) {
+                                            timeout = display_get_timeout() * 1000;
+                                        }
+                                        else {
+                                            timeout = 5000;
+                                        }
+
+                                        if ( lv_disp_get_inactive_time( NULL ) < timeout  || display_get_timeout() == DISPLAY_MAX_TIMEOUT ) {
                                             lv_task_handler();
                                         }
                                         else {
                                             powermgm_set_event( POWERMGM_STANDBY_REQUEST );
                                         }
+
                                         break;
         case POWERMGM_SILENCE_WAKEUP:   if ( lv_disp_get_inactive_time( NULL ) < display_get_timeout() * 1000 ) {
                                             lv_task_handler();

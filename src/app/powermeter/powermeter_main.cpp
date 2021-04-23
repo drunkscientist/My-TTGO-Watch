@@ -33,10 +33,12 @@
 #include "gui/statusbar.h"
 #include "gui/app.h"
 #include "gui/widget.h"
+#include "gui/widget_styles.h"
 
 #include "hardware/wifictl.h"
-#include "hardware/json_psram_allocator.h"
-#include "hardware/alloc.h"
+
+#include "utils/json_psram_allocator.h"
+#include "utils/alloc.h"
 
 lv_obj_t *powermeter_main_tile = NULL;
 lv_style_t powermeter_main_style;
@@ -119,17 +121,11 @@ void powermeter_main_tile_setup( uint32_t tile_num ) {
 
     powermeter_main_tile = mainbar_get_tile_obj( tile_num );
 
-    lv_style_copy( &powermeter_main_style, mainbar_get_style() );
-    lv_style_set_bg_color( &powermeter_main_style, LV_OBJ_PART_MAIN, LV_COLOR_BLACK );
-    lv_style_set_bg_opa( &powermeter_main_style, LV_OBJ_PART_MAIN, LV_OPA_100);
-    lv_style_set_border_width( &powermeter_main_style, LV_OBJ_PART_MAIN, 0);
+    lv_style_copy( &powermeter_main_style, ws_get_app_opa_style() );
     lv_style_set_text_font( &powermeter_main_style, LV_STATE_DEFAULT, &Ubuntu_48px);
     lv_obj_add_style( powermeter_main_tile, LV_OBJ_PART_MAIN, &powermeter_main_style );
 
-    lv_style_copy( &powermeter_id_style, mainbar_get_style() );
-    lv_style_set_bg_color( &powermeter_id_style, LV_OBJ_PART_MAIN, LV_COLOR_BLACK );
-    lv_style_set_bg_opa( &powermeter_id_style, LV_OBJ_PART_MAIN, LV_OPA_100);
-    lv_style_set_border_width( &powermeter_id_style, LV_OBJ_PART_MAIN, 0);
+    lv_style_copy( &powermeter_id_style, ws_get_app_opa_style() );
     lv_style_set_text_font( &powermeter_id_style, LV_STATE_DEFAULT, &Ubuntu_16px);
 
     lv_obj_t * exit_btn = lv_imgbtn_create( powermeter_main_tile, NULL);
@@ -230,11 +226,13 @@ bool powermeter_wifictl_event_cb( EventBits_t event, void *arg ) {
                                     break;
         case WIFICTL_OFF_REQUEST:
         case WIFICTL_OFF:
-        case WIFICTL_DISCONNECT:    log_i("disconnect from mqtt server %s", powermeter_config->server );
-                                    powermeter_mqtt_client.disconnect();
-                                    app_hide_indicator( powermeter_get_app_icon() );
-                                    widget_hide_indicator( powermeter_get_widget_icon() );
-                                    widget_set_label( powermeter_get_widget_icon(), "n/a" );
+        case WIFICTL_DISCONNECT:    if ( powermeter_mqtt_client.connected() ) {
+                                        log_i("disconnect from mqtt server %s", powermeter_config->server );
+                                        powermeter_mqtt_client.disconnect();
+                                        app_hide_indicator( powermeter_get_app_icon() );
+                                        widget_hide_indicator( powermeter_get_widget_icon() );
+                                        widget_set_label( powermeter_get_widget_icon(), "n/a" );
+                                    }
                                     break;
     }
     return( true );
