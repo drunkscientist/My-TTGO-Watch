@@ -39,8 +39,7 @@
 #include "display.h"
 #include "rtcctl.h"
 #include "sound.h"
-
-#include "gui/mainbar/mainbar.h"
+#include "gpsctl.h"
 
 EventGroupHandle_t powermgm_status = NULL;
 portMUX_TYPE DRAM_ATTR powermgmMux = portMUX_INITIALIZER_UNLOCKED;
@@ -54,19 +53,7 @@ bool powermgm_send_event_cb( EventBits_t event );
 bool powermgm_send_loop_event_cb( EventBits_t event );
 
 void powermgm_setup( void ) {
-
     powermgm_status = xEventGroupCreate();
-
-    pmu_setup();
-    bma_setup();
-    wifictl_setup();
-    touch_setup();
-    timesync_setup();
-    rtcctl_setup();
-    blectl_read_config();
-    sound_read_config();
-    
-    powermgm_set_event( POWERMGM_WAKEUP );
 }
 
 void powermgm_loop( void ) {
