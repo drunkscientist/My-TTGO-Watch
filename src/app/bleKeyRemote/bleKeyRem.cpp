@@ -38,7 +38,7 @@ void bleKeyRem_app_setup() {
 
 void build_btRem_page()
 {
-    fig = Style::Create(mainbar_get_style(), true);
+   // fig = Style::Create(mainbar_get_style(), true);
     fig.textFont(&Ubuntu_48px)
       .textOpacity(LV_OPA_80);
 

@@ -35,11 +35,8 @@
 #include "app/corona_app_detector/corona_app_detector.h"
 #include "app/alarm_clock/alarm_clock.h"
 #include "app/crypto_ticker/crypto_ticker.h"
-<<<<<<< HEAD:src/main.cpp
 #include "app/esp_app/esp_app.h"
-=======
 #include "app/sailing/sailing.h"
->>>>>>> 41742f4ee97ae2bc1d2ede62587b7d2a5fecd178:src/my-ttgo-watch.ino
 #include "app/osmand/osmand_app.h"
 #include "app/IRController/IRController.h"
 #include "app/fx_rates/fx_rates.h"
@@ -93,8 +90,7 @@ void setup() {
     soundboard_app_setup();
 
   	/*
-     *    
-post hardware setup
+     * post hardware setup
      * 
      * /hardware/hardware.cpp
      */
